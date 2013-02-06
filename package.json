@@ -1,9 +1,9 @@
 {
-  "name": "application-name",
+  "name": "IseeAPI",
   "version": "0.0.1",
-  "private": true,
+  "private": false,
   "scripts": {
-    "start": "node app"
+    "test": "mocha test"
   },
   "dependencies": {
     "express": "3.0.6",
