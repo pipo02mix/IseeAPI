@@ -3,7 +3,7 @@ var should = require("should")
 ,   restify = require("restify")
 ,   client = restify.createJsonClient({
         version: '*',
-        url: 'http://127.0.0.1:8080'
+        url: 'http://isee.tiatere.es:8080'
     });
  
 
@@ -11,7 +11,7 @@ describe('Quejas', function(){
     var quejas, response;
     
     before(function(done){
-        client.get('/quejas/41.115573/1.267033', function(err, req, res, data) {
+        client.get('/quejas?lat=41.115573&lon=1.267033', function(err, req, res, data) {
             response = res;
             quejas = data;
             done();
