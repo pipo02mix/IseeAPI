@@ -1,66 +1,40 @@
+var mongoose = require('mongoose')
+,   SEARCH_DISTANCE = 10/111.12;
 
-var mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/test');
-
-var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
-db.once('open', function callback () {
-  console.log("database open");
-});
-
-/*var mongo = require('mongodb');
-
-
-var Server = mongo.Server
-  , Db = mongo.Db
-  , BSON = mongo.BSONPure;  
-
-
-var server = new Server('localhost', 27017, {auto_reconnect: true});
-db = new Db('test', server);
- 
-/*db.open(function(err, db) {
-    if(!err) {
-        console.log("Connected to 'winedb' database");
-        db.collection('wines', {safe:true}, function(err, collection) {
-            if (err) {
-                console.log("The 'wines' collection doesn't exist. Creating it with sample data...");
-                populateDB();
-            }
-        });
-    } else {
-        console.log(err);
-    }
-});*/
-
-var schema = mongoose.Schema({ 
+var QuejaSchema = mongoose.Schema({ 
         title: String,
-        loc: {
+        description: String,
+        createdAt: { type: Date, default: Date.now },
+        comments: [{ body: String, date: Date }],
+        votes: [{ _iduser: mongoose.Schema.Types.ObjectId, date: Date }],
+        state: { type: String, enum: ['pendiente', 'atendido', 'solucionado', 'descartado']},
+        owner: String ,
+        category: { type: String, enum: ['seguridad', 'deterioro', 'trafico', 'limpieza', 'molestias', 'otros']},
+        image: { type: String },
+        watchers: [{ _iduser: mongoose.Schema.Types.ObjectId }],
+        coords: {
             type: [Number, Number],
             index : '2d'
         }
     });
     
-var Queja = mongoose.model('Queja', schema);
+var Queja = mongoose.model('Queja', QuejaSchema);
 
-exports.queja = function(req, res){
-  res.header("Access-Control-Allow-Origin", "*");
+
+mongoose.connect('mongodb://localhost/local');
+
+
+exports.findByCoords = function(req, res){
+  console.log(req.params.lon, req.params.lat);
   
-  Queja.find({"loc" : {$near : [ 41.12, 0.122 ] , $maxDistance : 10/111.12}})
+  Queja.find({"coords" : {$near : [ req.params.lat, req.params.lon ] , $maxDistance : SEARCH_DISTANCE}})
     .exec(function(err, quejas){
         if (err) console.log(err);
         res.send(quejas);
     });
-  
-  /*db.collection('test', function(err, collection) {
-        collection.find({"loc" : {$near : [ 41.12, 0.122 ] , $maxDistance : 10/111.12}}).toArray(function(err, items) {            
-            res.send(items);
-        });
-    });*/
 };
 
-exports.addQueja = function(req, res) {
-    res.header("Access-Control-Allow-Origin", "*");
+exports.add = function(req, res) {
     var queja = new Queja(req.body);
     
     console.log('Adding queja: ' + JSON.stringify(queja));
@@ -70,15 +44,4 @@ exports.addQueja = function(req, res) {
         console.log("guardado");
         res.send(JSON.stringify(queja));
     });
-    
-    /*db.collection('test', function(err, collection) {
-        collection.insert(queja, {safe:true}, function(err, result) {
-            if (err) {
-                res.send({'error':'An error has occurred'});
-            } else {
-                console.log('Success: ' + JSON.stringify(result[0]));
-                res.send(result[0]);
-            }
-        });
-    });*/
 }

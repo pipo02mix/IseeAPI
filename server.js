@@ -1,22 +1,26 @@
-var http = require('http')
-  , routes = require('./routes/queja')
-  , express = require('express');
- 
-var app = express();
- 
- 
-app.configure(function(){
-    app.use(express.bodyParser());
-    app.use(express.logger('dev'));
-}); 
- 
-app.get('/', function(req, res) {
+var restify = require('restify')
+  , queja = require('./routes/queja');
+
+var server = restify.createServer({
+    name: 'IseeAPI'
+});
+
+server.use(restify.CORS({
+    origins: ['http://isee.tiatere.es:3001'],
+    headers: ['*']
+}));
+server.use(restify.queryParser());
+
+//HOME
+server.get('/', function(req, res) {
     res.writeHead(200, {'Content-Type': 'text/plain'});
     res.end('Bienvindo a la prueba de la APi de ISEE \n');
 });
-app.get('/quejas', routes.queja);
-app.post('/quejas', routes.addQueja);
 
-http.createServer(app).listen(3000, function(){
-    console.log("Listen in port");
+//QUEJAS
+server.get('/quejas', queja.findByCoords);
+server.post('/quejas', queja.add);
+
+server.listen(8080, function() {
+  console.log('%s escuchando en %s', server.name, server.url);
 });
